@@ -8,6 +8,7 @@ if (!isset($_SESSION['mailcow_cc_role']) || $_SESSION['mailcow_cc_role'] != "adm
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/header.inc.php';
 $_SESSION['return_to'] = $_SERVER['REQUEST_URI'];
+$solr_status = (preg_match("/^([yY][eE][sS]|[yY])+$/", $_ENV["SKIP_SOLR"])) ? false : solr_status();
 $clamd_status = (preg_match("/^([yY][eE][sS]|[yY])+$/", $_ENV["SKIP_CLAMD"])) ? false : true;
 
 
@@ -22,14 +23,11 @@ $exec_fields = array('cmd' => 'system', 'task' => 'df', 'dir' => '/var/vmail');
 $vmail_df = explode(',', (string)json_decode(docker('post', 'dovecot-mailcow', 'exec', $exec_fields), true));
 
 // containers
-$containers_info = (array) docker('info');
-if ($clamd_status === false) unset($containers_info['clamd-mailcow']);
-ksort($containers_info);
-$containers = array();
-foreach ($containers_info as $container => $container_info) {
-  if (!isset($container_info['State']) || !is_array($container_info['State']) || !isset($container_info['State']['StartedAt'])){
-    continue;
-  }
+$containers = (array) docker('info');
+if ($clamd_status === false) unset($containers['clamd-mailcow']);
+if ($solr_status === false) unset($containers['solr-mailcow']);
+ksort($containers);
+foreach ($containers as $container => $container_info) {
   date_default_timezone_set('UTC');
   $StartedAt = date_parse($container_info['State']['StartedAt']);
   if ($StartedAt['hour'] !== false) {
@@ -44,15 +42,15 @@ foreach ($containers_info as $container => $container_info) {
     try {
       $user_tz = new DateTimeZone(getenv('TZ'));
       $date->setTimezone($user_tz);
-      $container_info['State']['StartedAtHR'] = $date->format('r');
+      $started = $date->format('r');
     } catch(Exception $e) {
-      $container_info['State']['StartedAtHR'] = '?';
+      $started = '?';
     }
   }
   else {
-    $container_info['State']['StartedAtHR'] = '?';
+    $started = '?';
   }
-  $containers[$container] = $container_info;
+  $containers[$container]['State']['StartedAtHR'] = $started;
 }
 
 // get mailcow data
@@ -67,6 +65,8 @@ $template_data = [
   'timezone' => $timezone,
   'gal' => @$_SESSION['gal'],
   'license_guid' => license('guid'),
+  'solr_status' => $solr_status,
+  'solr_uptime' => round($solr_status['status']['dovecot-fts']['uptime'] / 1000 / 60 / 60),
   'clamd_status' => $clamd_status,
   'containers' => $containers,
   'ip_check' => customize('get', 'ip_check'),

@@ -58,11 +58,6 @@ $(document).ready(function() {
     $('input[name=multiple_bookings]').val($("#multiple_bookings_custom").val());
   });
 
-  $("#show_mailbox_rename_form").click(function() {
-    $("#rename_warning").hide();
-    $("#rename_form").removeClass("d-none");
-  });
-
   // load tags
   if ($('#tags').length){
     var tagsEl = $('#tags').parent().find('.tag-values')[0];

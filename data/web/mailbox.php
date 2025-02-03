@@ -41,7 +41,6 @@ $template_data = [
   'mailboxes' => $mailboxes,
   'lang_mailbox' => json_encode($lang['mailbox']),
   'lang_rl' => json_encode($lang['ratelimit']),
-  'lang_edit' => json_encode($lang['edit']),
   'lang_datatables' => json_encode($lang['datatables']),
 ];
 

@@ -397,10 +397,7 @@ jQuery(function($){
         {
           title: lang.host,
           data: 'hostname',
-          defaultContent: '',
-          render: function (data, type) {
-            return escapeHtml(data);
-          }
+          defaultContent: ''
         },
         {
           title: lang.username,

@@ -203,14 +203,6 @@ jQuery(function($){
           defaultContent: ''
         },
         {
-          title: lang.description,
-          data: 'description',
-          defaultContent: '',
-          render: function (data, type) {
-            return escapeHtml(data);
-          }
-        },
-        {
           title: lang.alias_valid_until,
           data: 'validity',
           defaultContent: '',

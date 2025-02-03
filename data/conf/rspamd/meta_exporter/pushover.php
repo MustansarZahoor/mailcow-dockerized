@@ -24,7 +24,6 @@ catch (PDOException $e) {
 // Init Redis
 $redis = new Redis();
 $redis->connect('redis-mailcow', 6379);
-$redis->auth(getenv("REDISPASS"));
 
 // Functions
 function parse_email($email) {
@@ -54,7 +53,7 @@ $qid      = $headers['X-Rspamd-Qid'];
 $rcpts    = $headers['X-Rspamd-Rcpt'];
 $sender   = $headers['X-Rspamd-From'];
 $ip       = $headers['X-Rspamd-Ip'];
-$subject  = iconv_mime_decode($headers['X-Rspamd-Subject']);
+$subject  = $headers['X-Rspamd-Subject'];
 $messageid= $json_body->message_id;
 $priority = 0;
 

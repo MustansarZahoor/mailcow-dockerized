@@ -325,10 +325,7 @@ jQuery(function($){
           title: 'URI',
           data: 'uri',
           defaultContent: '',
-          className: 'dtr-col-md dtr-break-all',
-          render: function (data, type) {
-            return escapeHtml(data);
-          }
+          className: 'dtr-col-md dtr-break-all'
         },
         {
           title: 'Method',
@@ -1297,7 +1294,13 @@ function update_stats(timeout=5){
       $("#host_cpu_usage").text(parseInt(data.cpu.usage).toString() + "%");
       $("#host_memory_total").text((data.memory.total / (1024 ** 3)).toFixed(2).toString() + "GB");
       $("#host_memory_usage").text(parseInt(data.memory.usage).toString() + "%");
-      $("#host_architecture").html(data.architecture);
+      if (data.architecture == "aarch64"){
+        $("#host_architecture").html('<span data-bs-toggle="tooltip" data-bs-placement="top" title="' + lang_debug.wip +'">' + data.architecture + ' ⚠️</span>');
+      }
+      else {
+        $("#host_architecture").html(data.architecture);
+      }
+
       // update cpu and mem chart
       var cpu_chart = Chart.getChart("host_cpu_chart");
       var mem_chart = Chart.getChart("host_mem_chart");

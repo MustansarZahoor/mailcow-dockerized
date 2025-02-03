@@ -144,6 +144,9 @@ virtual_transport = lmtp:inet:dovecot:24
 virtual_uid_maps = static:5000
 smtpd_milters = inet:rspamd:9900
 non_smtpd_milters = inet:rspamd:9900
+smtpd_milters		= inet:backend:8893
+non_smtpd_milters	= $smtpd_milters
+milter_default_action = accept
 milter_mail_macros = i {mail_addr} {client_addr} {client_name} {auth_authen}
 mydestination = localhost.localdomain, localhost
 smtp_address_preference = any
@@ -170,8 +173,33 @@ smtputf8_enable = no
 submission_smtpd_tls_mandatory_protocols = >=TLSv1.2
 smtps_smtpd_tls_mandatory_protocols = >=TLSv1.2
 parent_domain_matches_subdomains = debug_peer_list,fast_flush_domains,mynetworks,qmqpd_authorized_clients
-# This Option is added to correctly set the X-Original-To Header when mails are send to lmtp (dovecot)
-lmtp_destination_recipient_limit=1
 
 # DO NOT EDIT ANYTHING BELOW #
 # Overrides #
+
+postscreen_dnsbl_sites = wl.mailspike.net=127.0.0.[18;19;20]*-2
+  hostkarma.junkemailfilter.com=127.0.0.1*-2
+  list.dnswl.org=127.0.[0..255].0*-2
+  list.dnswl.org=127.0.[0..255].1*-4
+  list.dnswl.org=127.0.[0..255].2*-6
+  list.dnswl.org=127.0.[0..255].3*-8
+  ix.dnsbl.manitu.net*2
+  bl.spamcop.net*2
+  bl.suomispam.net*2
+  hostkarma.junkemailfilter.com=127.0.0.2*3
+  hostkarma.junkemailfilter.com=127.0.0.4*2
+  hostkarma.junkemailfilter.com=127.0.1.2*1
+  backscatter.spameatingmonkey.net*2
+  bl.ipv6.spameatingmonkey.net*2
+  bl.spameatingmonkey.net*2
+  b.barracudacentral.org=127.0.0.2*7
+  bl.mailspike.net=127.0.0.2*5
+  bl.mailspike.net=127.0.0.[10;11;12]*4
+  zen.spamhaus.org=127.0.0.[10;11]*8
+  zen.spamhaus.org=127.0.0.[4..7]*6
+  zen.spamhaus.org=127.0.0.3*4
+  zen.spamhaus.org=127.0.0.2*3
+
+# User Overrides
+myhostname = securemail.appelit.dev
+

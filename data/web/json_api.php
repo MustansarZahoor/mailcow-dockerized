@@ -509,6 +509,16 @@ if (isset($_GET['query'])) {
           print(json_encode($getArgs));
           $_SESSION['challenge'] = $WebAuthn->getChallenge();
           return;
+        break;          
+        case "fail2ban":
+          if (!isset($_SESSION['mailcow_cc_role'])){
+            switch ($object) {
+              case 'banlist':
+                header('Content-Type: text/plain');
+                echo fail2ban('banlist', 'get', $extra);
+              break;
+            }
+          }
         break;
       }
       if (isset($_SESSION['mailcow_cc_role'])) {
@@ -1067,10 +1077,9 @@ if (isset($_GET['query'])) {
                   ['db' => 'last_mail_login', 'dt' => 4, 'dummy' => true, 'order_subquery' => "SELECT MAX(`datetime`) FROM `sasl_log` WHERE `service` != 'SSO' AND `username` = `m`.`username`"],
                   ['db' => 'last_pw_change', 'dt' => 5, 'dummy' => true, 'order_subquery' => "JSON_EXTRACT(attributes, '$.passwd_update')"],
                   ['db' => 'in_use', 'dt' => 6, 'dummy' => true, 'order_subquery' => "(SELECT SUM(bytes) FROM `quota2` WHERE `quota2`.`username` = `m`.`username`) / `m`.`quota`"],
-                  ['db' => 'name', 'dt' => 7],
                   ['db' => 'messages', 'dt' => 17, 'dummy' => true, 'order_subquery' => "SELECT SUM(messages) FROM `quota2` WHERE `quota2`.`username` = `m`.`username`"],
                   ['db' => 'tags', 'dt' => 20, 'dummy' => true, 'search' => ['join' => 'LEFT JOIN `tags_mailbox` AS `tm` ON `tm`.`username` = `m`.`username`', 'where_column' => '`tm`.`tag_name`']],
-                  ['db' => 'active', 'dt' => 21],
+                  ['db' => 'active', 'dt' => 21]
                 ];
 
                 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/lib/ssp.class.php';
@@ -1411,6 +1420,10 @@ if (isset($_GET['query'])) {
           break;
           case "fail2ban":
             switch ($object) {
+              case 'banlist':
+                header('Content-Type: text/plain');
+                echo fail2ban('banlist', 'get', $extra);
+              break;
               default:
                 $data = fail2ban('get');
                 process_get_return($data);
@@ -1627,6 +1640,23 @@ if (isset($_GET['query'])) {
                     'used_percent' => $vmail_df[4]
                   );
                   echo json_encode($temp, JSON_UNESCAPED_SLASHES);
+                break;
+                case "solr":
+                  $solr_status = solr_status();
+                  $solr_size = ($solr_status['status']['dovecot-fts']['index']['size']);
+                  $solr_documents = ($solr_status['status']['dovecot-fts']['index']['numDocs']);
+                  if (strtolower(getenv('SKIP_SOLR')) != 'n') {
+                    $solr_enabled = false;
+                  }
+                  else {
+                    $solr_enabled = true;
+                  }
+                  echo json_encode(array(
+                    'type' => 'info',
+                    'solr_enabled' => $solr_enabled,
+                    'solr_size' => $solr_size,
+                    'solr_documents' => $solr_documents
+                  ));
                 break;
                 case "host":
                   if (!$extra){
@@ -1943,6 +1973,7 @@ if (isset($_GET['query'])) {
         case "quota_notification_bcc":
           process_edit_return(quota_notification_bcc('edit', $attr));
         break;
+        break;
         case "mailq":
           process_edit_return(mailq('edit', array_merge(array('qid' => $items), $attr)));
         break;
@@ -1989,9 +2020,6 @@ if (isset($_GET['query'])) {
         break;
         case "rl-mbox":
           process_edit_return(ratelimit('edit', 'mailbox', array_merge(array('object' => $items), $attr)));
-        break;
-        case "rename-mbox":
-          process_edit_return(mailbox('edit', 'mailbox_rename', array_merge(array('mailbox' => $items), $attr)));
         break;
         case "user-acl":
           process_edit_return(acl('edit', 'user', array_merge(array('username' => $items), $attr)));
@@ -2040,9 +2068,6 @@ if (isset($_GET['query'])) {
         break;
         case "cors":
           process_edit_return(cors('edit', $attr));
-        break;
-        case "reset-password-notification":
-          process_edit_return(reset_password('edit_notification', $attr));
         break;
         // return no route found if no case is matched
         default:
